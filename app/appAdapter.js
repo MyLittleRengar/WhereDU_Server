@@ -212,6 +212,19 @@ router.post('/addTravelRecyclerList', function (req, res, next) {
 });
 */
 
+router.post('/searchText', function (req, res, next) {
+    var searchText = req.body.searchText;
+    var userNickname = req.body.userNickname;
+    connection.query('SELECT friendNickname FROM friend_list WHERE ownerNickname=? AND friendNickname Like ?', [userNickname, '%'+searchText+'%'], function (error, rows) {
+        if (rows.length != 0) {
+            res.send(rows)
+        }
+        else {
+            res.send("NoData");
+        }
+    });
+});
+
 router.post('/friendAdd', function (req, res, next) {
     var userNickname = req.body.userNickname;
     var friendNickname = req.body.friendNickname;
@@ -265,6 +278,15 @@ router.post('/changeData', function (req, res, next) {
         if (error) console.table(error);
         res.send("pass");
     });
+});
+
+router.post('/friendDelete', function (req, res, next) {
+    var friendNickname = req.body.friendNickname;
+    var userNickname = req.body.userNickname;
+    connection.query('DELETE FROM friend_list WHERE friendNickname=? AND ownerNickname=?', [friendNickname, userNickname], function(error, results) {
+        if(error) console.table(error);
+        res.send("pass");
+    }); 
 });
 
 //회원 탈퇴
