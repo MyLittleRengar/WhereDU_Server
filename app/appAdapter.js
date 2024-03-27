@@ -173,7 +173,17 @@ router.post('/forgetPw', function (req, res, next) {
 router.post('/friendListData', function (req, res, next) {
     var userNickname = req.body.userNickname;
     var friendInt = req.body.friendInt;
-    connection.query('SELECT * FROM friend_list WHERE ownerNickname=?', [userNickname], function (error, rows) {
+    connection.query('SELECT * FROM friend_list WHERE ownerNickname=? AND friendBookMark IS NULL', [userNickname], function (error, rows) {
+        if(error) console.log(error)
+        var data = rows[friendInt].friendNickname;
+        res.send(data);
+    });
+});
+
+router.post('/bookmarkFriendListData', function (req, res, next) {
+    var userNickname = req.body.userNickname;
+    var friendInt = req.body.friendInt;
+    connection.query('SELECT * FROM friend_list WHERE ownerNickname=? AND friendBookMark IS NOT NULL', [userNickname], function (error, rows) {
         if(error) console.log(error)
         var data = rows[friendInt].friendNickname;
         res.send(data);
@@ -195,22 +205,39 @@ router.post('/nicknameCheck', function (req, res, next) {
 
 router.post('/returnFriendCount', function (req, res, next) {
     var userNickname = req.body.userNickname;
-    connection.query('SELECT * FROM friend_list WHERE ownerNickname=?', [userNickname], function (error, rows) {
+    connection.query('SELECT * FROM friend_list WHERE ownerNickname=? AND friendBookMark IS NULL ', [userNickname], function (error, rows) {
         if(error) console.log(error)
         var dataCnt = rows.length.toString();
         res.send(dataCnt);
     });
 });
 
-/*
-갯수를 바탕으로 리사이클러에 데이터 추가
-router.post('/addTravelRecyclerList', function (req, res, next) {
-    var travelCnt = req.body.travelCnt;
-    connection.query('SELECT * FROM travelCalendar;', function (error, rows) {
-        res.send(rows[travelCnt]);
+router.post('/returnBookMarkFriendCount', function (req, res, next) {
+    var userNickname = req.body.userNickname;
+    connection.query('SELECT * FROM friend_list WHERE ownerNickname=? AND friendBookMark IS NOT NULL ', [userNickname], function (error, rows) {
+        if(error) console.log(error)
+        var dataCnt = rows.length.toString();
+        res.send(dataCnt);
     });
 });
-*/
+
+router.post('/friendBookMarkChange', function (req, res, next) {
+    var check = req.body.check;
+    var friendNickname = req.body.friendNickname;
+    var userNickname = req.body.userNickname;
+    if(check == "true") {
+        connection.query('UPDATE friend_list SET friendBookMark = ? WHERE friendNickname=? AND ownerNickname=?', ["0", friendNickname,userNickname], function (error, results) {
+            if (error) console.table(error);
+            res.send("AddPass")
+        });
+    }
+    else {
+        connection.query('UPDATE friend_list SET friendBookMark = NULL WHERE friendNickname=? AND ownerNickname=?', [friendNickname,userNickname], function (error, results) {
+            if (error) console.table(error);
+            res.send("NullPass")
+        });
+    }
+});
 
 router.post('/searchText', function (req, res, next) {
     var searchText = req.body.searchText;
