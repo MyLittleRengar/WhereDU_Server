@@ -18,5 +18,5 @@ app.use(express.static('public'));
 app.use('/app', appRouter);
 
 app.listen(port, function() {
-    console.log("서버가동");
+    console.log("서버 실행");
 });

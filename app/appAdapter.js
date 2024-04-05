@@ -170,6 +170,16 @@ router.post('/forgetPw', function (req, res, next) {
     });
 });
 
+router.post('/promiseFriendListData', function (req, res, next) {
+    var userNickname = req.body.userNickname;
+    var friendInt = req.body.friendInt;
+    connection.query('SELECT * FROM friend_list WHERE ownerNickname=?', [userNickname], function (error, rows) {
+        if(error) console.log(error)
+        var data = rows[friendInt].friendNickname;
+        res.send(data);
+    });
+});
+
 router.post('/friendListData', function (req, res, next) {
     var userNickname = req.body.userNickname;
     var friendInt = req.body.friendInt;
@@ -200,6 +210,15 @@ router.post('/nicknameCheck', function (req, res, next) {
         else {
             res.send("NickFail");
         }
+    });
+});
+
+router.post('/returnPromiseFriendCount', function (req, res, next) {
+    var userNickname = req.body.userNickname;
+    connection.query('SELECT * FROM friend_list WHERE ownerNickname=?', [userNickname], function (error, rows) {
+        if(error) console.log(error)
+        var dataCnt = rows.length.toString();
+        res.send(dataCnt);
     });
 });
 
@@ -255,10 +274,26 @@ router.post('/searchText', function (req, res, next) {
 router.post('/friendAdd', function (req, res, next) {
     var userNickname = req.body.userNickname;
     var friendNickname = req.body.friendNickname;
-    var friendBookMark = ""
-    connection.query('INSERT INTO friend_list (friendNickname, ownerNickname, friendBookMark) VALUES(?,?,?)', [friendNickname, userNickname, friendBookMark], function (error, data) {
-        if(error) console.log(error)
-        res.send("pass");
+    connection.query('SELECT * FROM member WHERE userNickname=?', [userNickname], function (error, row) {
+        if(error) console.log(error);
+        if(row != 0) {
+            connection.query('SELECT * FROM friend_list WHERE ownerNickname=? AND friendNickname=?', [userNickname, friendNickname], function (error, rows) {
+                if(error) console.log(error);
+                if(rows.length != 0) {
+                    connection.query('INSERT INTO friend_list (friendNickname, ownerNickname, friendBookMark) VALUES(?,?,NULL)', [friendNickname, userNickname], function (error, data) {
+                        if(error) console.log(error);
+                        res.send("pass");
+                    });
+                }
+                else {
+                    res.send("friendFail");
+                }
+            });
+        }
+        else {
+            res.send("nicknameFail");
+        }
+
     });
 });
 
@@ -293,20 +328,6 @@ router.post('/addUser', function (req, res, next) {
     });
 });
 
-//데이터 수정
-router.post('/changeData', function (req, res, next) {
-    var ownNum = req.body.ownNum;
-    var changeType = req.body.changeType;
-    var changeDate = req.body.changeDate;
-    var changeLoc = req.body.changeLoc;
-    var changePerson = req.body.changePerson;
-    //console.log(ownNum+changeType+changeDate+changeLoc+changePerson);
-    connection.query('UPDATE travelCalendar SET calType= ?, calDate=?, calLoc=?, calPer=? WHERE calTime= ?', [changeType, changeDate, changeLoc, changePerson, ownNum], function (error, results) {
-        if (error) console.table(error);
-        res.send("pass");
-    });
-});
-
 router.post('/friendDelete', function (req, res, next) {
     var friendNickname = req.body.friendNickname;
     var userNickname = req.body.userNickname;
@@ -318,10 +339,13 @@ router.post('/friendDelete', function (req, res, next) {
 
 //회원 탈퇴
 router.post('/unregister', function (req, res, next) {
-    var userID = req.body.userID;
-    connection.query('DELETE FROM member WHERE userid = ?', [userID], function(error, results) {
+    var userNickname = req.body.userNickname;
+    connection.query('DELETE FROM member WHERE userNickname  = ?', [userNickname], function(error, results) {
         if(error) console.table(error);
-        res.send("pass");
+        connection.query('DELETE FROM friend_list WHERE ownerNickname = ? OR friendNickname=?', [userNickname, userNickname], function(errors, results) {
+            if(errors) console.table(errors);
+            res.send("pass");
+        });
     }); 
 });
 
