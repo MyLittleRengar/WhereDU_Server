@@ -6,6 +6,7 @@ const fs = require('fs');
 const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
+const e = require('express');
 
 var router = express.Router();
 
@@ -83,13 +84,43 @@ router.post('/search', function (req, res, next) {
     }); 
 });
 */
+router.post('/addPromise', function (req, res, next) {
+    var promiseName = req.body.promiseName;
+    var promiseLatitude = req.body.promiseLatitude;
+    var promiseLongitude = req.body.promiseLongitude;
+    var promisePlace = req.body.promisePlace;
+    var promiseTime = req.body.promiseTime;
+    var promiseMember = req.body.promiseMember.join(', ');
+    var promiseMemo = req.body.promiseMemo;
+    if(promiseMemo == null) {
+        connection.query('INSERT INTO promise (promiseName, promiseLatitude, promiseLongitude, promisePlace, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?)', [promiseName, promiseLatitude, promiseLongitude, promisePlace, promiseTime, null], function (error, data) {
+            if(error){
+                res.send("nameFail");
+            }
+            else {
+                res.send("pass");
+            }
+        });
+    }
+    else {
+        connection.query('INSERT INTO promise (promiseName, promiseLatitude, promiseLongitude, promisePlace, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?)', [promiseName, promiseLatitude, promiseLongitude, promisePlace, promiseTime, promiseMember, promiseMemo], function (error, data) {
+            if(error){
+                res.send("nameFail");
+            }
+            else {
+                res.send("pass");
+            }
+        });
+    }
+    
+});
+
 router.post('/getUserData', function (req, res, next) {
     var userId = req.body.userId;
     connection.query('SELECT * FROM member WHERE userID=?', [userId], function (error, rows) {
         res.send(rows[0].userNickname);
     });
 });
-
 
 router.post('/findId', function (req, res, next) {
     var findNickname = req.body.findNickname;
