@@ -89,11 +89,14 @@ router.post('/addPromise', function (req, res, next) {
     var promiseLatitude = req.body.promiseLatitude;
     var promiseLongitude = req.body.promiseLongitude;
     var promisePlace = req.body.promisePlace;
+    var promisePlaceDetail = req.body.promisePlaceDetail;
+    var promiseDate = req.body.promiseDate;
     var promiseTime = req.body.promiseTime;
     var promiseMember = req.body.promiseMember.join(', ');
     var promiseMemo = req.body.promiseMemo;
+    console.log(promiseName);
     if(promiseMemo == null) {
-        connection.query('INSERT INTO promise (promiseName, promiseLatitude, promiseLongitude, promisePlace, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?)', [promiseName, promiseLatitude, promiseLongitude, promisePlace, promiseTime, null], function (error, data) {
+        connection.query('INSERT INTO promise (promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?,?)', [promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate,promiseTime, null], function (error, data) {
             if(error){
                 res.send("nameFail");
             }
@@ -103,7 +106,7 @@ router.post('/addPromise', function (req, res, next) {
         });
     }
     else {
-        connection.query('INSERT INTO promise (promiseName, promiseLatitude, promiseLongitude, promisePlace, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?)', [promiseName, promiseLatitude, promiseLongitude, promisePlace, promiseTime, promiseMember, promiseMemo], function (error, data) {
+        connection.query('INSERT INTO promise (promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?,?,?)', [promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo], function (error, data) {
             if(error){
                 res.send("nameFail");
             }
@@ -253,6 +256,8 @@ router.post('/returnPromiseFriendCount', function (req, res, next) {
     });
 });
 
+
+
 router.post('/returnFriendCount', function (req, res, next) {
     var userNickname = req.body.userNickname;
     connection.query('SELECT * FROM friend_list WHERE ownerNickname=? AND friendBookMark IS NULL ', [userNickname], function (error, rows) {
@@ -368,6 +373,45 @@ router.post('/friendDelete', function (req, res, next) {
     }); 
 });
 
+router.post('/returnPromiseData', function (req, res, next) {
+    var promiseName = req.body.promiseName;
+    connection.query('SELECT promiseName, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo FROM promise WHERE promiseName =?', [promiseName], function (error, rows) {
+        res.send(rows);
+    });
+});
+
+router.post('/calendarPromiseData', function (req, res, next) {
+    connection.query('SELECT promiseDate FROM promise', function (error, rows) {
+        res.send(rows);
+    });
+});
+
+router.post('/selectPromiseData', function (req, res, next) {
+    var promiseDate = req.body.promiseDate;
+    var cnt = req.body.cnt;
+    connection.query('SELECT promiseName, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo FROM promise WHERE promiseDate=?',[promiseDate], function (error, rows) {
+        if(rows.length <= 0) {
+            res.send("noData")
+        }
+        else {
+            res.send(rows[cnt]);
+        }
+    });
+});
+
+router.post('/returnSelectPromiseData', function (req, res, next) {
+    var promiseDate = req.body.promiseDate;
+    connection.query('SELECT promiseName, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo FROM promise WHERE promiseDate=?',[promiseDate], function (error, rows) {
+        if(rows.length <= 0) {
+            res.send("noData");
+        }
+        else {
+            var dataCnt = rows.length.toString();
+            res.send(dataCnt);
+        }
+    });
+});
+
 //회원 탈퇴
 router.post('/unregister', function (req, res, next) {
     var userNickname = req.body.userNickname;
@@ -377,6 +421,14 @@ router.post('/unregister', function (req, res, next) {
             if(errors) console.table(errors);
             res.send("pass");
         });
+    }); 
+});
+
+router.post('/deletePromise', function (req, res, next) {
+    var promiseName = req.body.name;
+    connection.query('DELETE FROM promise WHERE promiseName = ?', [promiseName], function(error, results) {
+        if(error) {console.log(error);}
+        else { res.send("pass"); }
     }); 
 });
 

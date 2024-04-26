@@ -1,5 +1,5 @@
 const config = {
-    host: 'swdb.solrukas.me',
+    host: 'swdb.1ee.tech',
     port: '33306',
     user: 'root',
     password: '!asdf1234',
