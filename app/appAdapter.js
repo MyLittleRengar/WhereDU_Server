@@ -85,6 +85,7 @@ router.post('/search', function (req, res, next) {
 });
 */
 router.post('/addPromise', function (req, res, next) {
+    var promiseOwner = req.body.promiseOwner;
     var promiseName = req.body.promiseName;
     var promiseLatitude = req.body.promiseLatitude;
     var promiseLongitude = req.body.promiseLongitude;
@@ -96,7 +97,7 @@ router.post('/addPromise', function (req, res, next) {
     var promiseMemo = req.body.promiseMemo;
     console.log(promiseName);
     if(promiseMemo == null) {
-        connection.query('INSERT INTO promise (promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?,?)', [promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate,promiseTime, null], function (error, data) {
+        connection.query('INSERT INTO promise (promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?,?,?)', [promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate,promiseTime, null], function (error, data) {
             if(error){
                 res.send("nameFail");
             }
@@ -401,11 +402,49 @@ router.post('/selectPromiseData', function (req, res, next) {
 
 router.post('/returnSelectPromiseData', function (req, res, next) {
     var promiseDate = req.body.promiseDate;
-    connection.query('SELECT promiseName, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo FROM promise WHERE promiseDate=?',[promiseDate], function (error, rows) {
+    connection.query('SELECT promiseName FROM promise WHERE promiseDate=?',[promiseDate], function (error, rows) {
         if(rows.length <= 0) {
             res.send("noData");
         }
         else {
+            var dataCnt = rows.length.toString();
+            res.send(dataCnt);
+        }
+    });
+});
+
+router.post('/recentPromise', function (req, res, next) {
+    var userName = req.body.userName;
+    connection.query(`SELECT promiseName, promisePlace, promiseTime, promiseDate, promiseLatitude, promiseLongitude FROM promise WHERE (promiseMember Like ? OR promiseOwner = ?) AND STR_TO_DATE(CONCAT(promiseDate, ' ', promiseTime), '%Y.%m.%d %H:%i') >= NOW() ORDER BY STR_TO_DATE(CONCAT(promiseDate, ' ', promiseTime), '%Y.%m.%d %H:%i') ASC LIMIT 1;`, ['%'+userName+'%', userName], function (error, rows) {
+        if (rows.length <= 0) {
+            res.send("noData");
+        } else {
+            res.send(rows);
+        }
+    });
+    
+});
+
+router.post('/pastPromise', function (req, res, next) {
+    var userName = req.body.userName;
+    var cnt = req.body.cnt;
+    connection.query(`SELECT promiseName, promiseMember, promiseTime, promiseDate FROM promise WHERE (promiseMember LIKE ? OR promiseOwner = ?) AND STR_TO_DATE(CONCAT(promiseDate, ' ', promiseTime), '%Y.%m.%d %H:%i') < NOW() ORDER BY STR_TO_DATE(CONCAT(promiseDate, ' ', promiseTime), '%Y.%m.%d %H:%i') ASC;`, ['%'+userName+'%', userName], function (error, rows) {
+        console.log(rows[cnt])
+        if(rows.length <= 0) {
+            res.send("noData")
+        }
+        else {
+            res.send(rows[cnt]);
+        }
+    });
+});
+
+router.post('/returnPastPromise', function (req, res, next) {
+    var userName = req.body.userName;
+    connection.query(`SELECT promiseName FROM promise WHERE (promiseMember LIKE ? OR promiseOwner = ?) AND STR_TO_DATE(CONCAT(promiseDate, ' ', promiseTime), '%Y.%m.%d %H:%i') < NOW() ORDER BY STR_TO_DATE(CONCAT(promiseDate, ' ', promiseTime), '%Y.%m.%d %H:%i') ASC;`, ['%'+userName+'%', userName], function (error, rows) {
+        if (rows.length <= 0) {
+            res.send("noData");
+        } else {
             var dataCnt = rows.length.toString();
             res.send(dataCnt);
         }
