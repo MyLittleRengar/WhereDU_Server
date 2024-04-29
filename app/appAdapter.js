@@ -74,16 +74,7 @@ router.post('/contest', function (req, res, next) {
 
     });
 });
-/*
-//Search DB 갯수 리턴
-router.post('/search', function (req, res, next) {
-    var searchText = req.body.searchText;
-    connection.query('SELECT * FROM car_list WHERE name Like ? OR phone Like ? OR carnumber Like ? OR workship Like ? OR department Like ? OR memo Like ? ORDER BY `car_list`.`name` ASC;',['%'+searchText+'%', '%'+searchText+'%', '%'+searchText+'%','%'+searchText+'%','%'+searchText+'%','%'+searchText+'%'], function(error, rows) {
-        var dataLength = rows.length;
-        res.send(dataLength.toString());
-    }); 
-});
-*/
+
 router.post('/addPromise', function (req, res, next) {
     var promiseOwner = req.body.promiseOwner;
     var promiseName = req.body.promiseName;
@@ -116,7 +107,6 @@ router.post('/addPromise', function (req, res, next) {
             }
         });
     }
-    
 });
 
 router.post('/getUserData', function (req, res, next) {
@@ -429,7 +419,6 @@ router.post('/pastPromise', function (req, res, next) {
     var userName = req.body.userName;
     var cnt = req.body.cnt;
     connection.query(`SELECT promiseName, promiseMember, promiseTime, promiseDate FROM promise WHERE (promiseMember LIKE ? OR promiseOwner = ?) AND STR_TO_DATE(CONCAT(promiseDate, ' ', promiseTime), '%Y.%m.%d %H:%i') < NOW() ORDER BY STR_TO_DATE(CONCAT(promiseDate, ' ', promiseTime), '%Y.%m.%d %H:%i') ASC;`, ['%'+userName+'%', userName], function (error, rows) {
-        console.log(rows[cnt])
         if(rows.length <= 0) {
             res.send("noData")
         }
@@ -451,7 +440,76 @@ router.post('/returnPastPromise', function (req, res, next) {
     });
 });
 
-//회원 탈퇴
+router.post('/eventData', function (req, res, next) {
+    var event = req.body.event;
+    connection.query(`SELECT eventTitle, eventStartDate, eventEndDate FROM event;`, function (error, rows) {
+        if(rows.length <= 0) {
+            res.send("noData")
+        }
+        else {
+            res.send(rows[event]);
+        }
+    });
+});
+
+router.post('/returnEventData', function (req, res, next) {
+    connection.query(`SELECT * FROM event;`, function (error, rows) {
+        if (rows.length <= 0) {
+            res.send("noData");
+        } else {
+            var dataCnt = rows.length.toString();
+            res.send(dataCnt);
+        }
+    });
+});
+
+router.post('/eventInfoData', function (req, res, next) {
+    var eventTitle = req.body.eventTitle;
+    connection.query(`SELECT * FROM event WHERE eventTitle=?;`,[eventTitle], function (error, rows) {
+        res.send(rows);
+    });
+});
+
+
+router.post('/noticeData', function (req, res, next) {
+    var notice = req.body.notice;
+    connection.query(`SELECT noticeTitle, noticeDate FROM notice;`, function (error, rows) {
+        if(rows.length <= 0) {
+            res.send("noData")
+        }
+        else {
+            res.send(rows[notice]);
+        }
+    });
+});
+
+router.post('/returnNoticeData', function (req, res, next) {
+    connection.query(`SELECT * FROM notice;`, function (error, rows) {
+        if (rows.length <= 0) {
+            res.send("noData");
+        } else {
+            var dataCnt = rows.length.toString();
+            res.send(dataCnt);
+        }
+    });
+});
+
+router.post('/noticeInfoData', function (req, res, next) {
+    var noticeTitle = req.body.noticeTitle;
+    connection.query(`SELECT * FROM notice WHERE noticeTitle=?;`,[noticeTitle], function (error, rows) {
+        res.send(rows);
+    });
+});
+
+router.post('/inquiry', function (req, res, next) {
+    var nickname = req.body.nickname;
+    var date = req.body.date;
+    var content = req.body.content;
+    connection.query('INSERT INTO promise (nquiryTitle, inquiryDate, inquiryContent) VALUES(?,?,?)', [nickname, date, content], function (error, data) {
+        res.send("pass");
+    });
+});
+
 router.post('/unregister', function (req, res, next) {
     var userNickname = req.body.userNickname;
     connection.query('DELETE FROM member WHERE userNickname  = ?', [userNickname], function(error, results) {
