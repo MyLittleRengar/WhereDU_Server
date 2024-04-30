@@ -6,7 +6,6 @@ const fs = require('fs');
 const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
-const e = require('express');
 
 var router = express.Router();
 
@@ -86,7 +85,6 @@ router.post('/addPromise', function (req, res, next) {
     var promiseTime = req.body.promiseTime;
     var promiseMember = req.body.promiseMember.join(', ');
     var promiseMemo = req.body.promiseMemo;
-    console.log(promiseName);
     if(promiseMemo == null) {
         connection.query('INSERT INTO promise (promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?,?,?)', [promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate,promiseTime, null], function (error, data) {
             if(error){
@@ -505,7 +503,7 @@ router.post('/inquiry', function (req, res, next) {
     var nickname = req.body.nickname;
     var date = req.body.date;
     var content = req.body.content;
-    connection.query('INSERT INTO promise (nquiryTitle, inquiryDate, inquiryContent) VALUES(?,?,?)', [nickname, date, content], function (error, data) {
+    connection.query('INSERT INTO inquiry (inquiryTitle, inquiryDate, inquiryContent) VALUES(?,?,?)', [nickname, date, content], function (error, data) {
         res.send("pass");
     });
 });
@@ -527,6 +525,38 @@ router.post('/deletePromise', function (req, res, next) {
         if(error) {console.log(error);}
         else { res.send("pass"); }
     }); 
+});
+
+router.post('/inquiry', function (req, res, next) {
+    var nickname = req.body.nickname;
+    var date = req.body.date;
+    var content = req.body.content;
+    connection.query('INSERT INTO inquiry (inquiryTitle, inquiryDate, inquiryContent) VALUES(?,?,?)', [nickname, date, content], function (error, data) {
+        res.send("pass");
+    });
+});
+
+router.post('/location', function (req, res, next) {
+    var nickname = req.body.nickname;
+    var longitude = req.body.longitude
+    var latitude = req.body.latitude;
+    connection.query('INSERT INTO location (nickname, longitude, latitude) VALUES(?,?,?)', [nickname, longitude, latitude], function (error, data) {
+        res.send("pass");
+    });
+});
+
+router.post('/memberLocation', function (req, res, next) {
+    var nickname = req.body.nickname;
+    connection.query(`SELECT * FROM location WHERE nickname=?;`,[nickname], function (error, rows) {
+        res.send(rows);
+    });
+});
+
+router.post('/memberTouchdown', function (req, res, next) {
+    var nickname = req.body.nickname;
+    connection.query(`SELECT * FROM touchdown WHERE nickname=?;`,[nickname], function (error, rows) {
+        res.send(rows);
+    });
 });
 
 module.exports = router;
