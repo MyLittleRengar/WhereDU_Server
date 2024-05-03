@@ -86,8 +86,9 @@ router.post('/addPromise', function (req, res, next) {
     var promiseMember = req.body.promiseMember.join(', ');
     var promiseMemo = req.body.promiseMemo;
     if(promiseMemo == null) {
-        connection.query('INSERT INTO promise (promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?,?,?)', [promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate,promiseTime, null], function (error, data) {
+        connection.query('INSERT INTO promise (promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?,?,?,?)', [promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate,promiseTime, null], function (error, data) {
             if(error){
+                console.log(error);
                 res.send("nameFail");
             }
             else {
@@ -96,8 +97,9 @@ router.post('/addPromise', function (req, res, next) {
         });
     }
     else {
-        connection.query('INSERT INTO promise (promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?,?,?)', [promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo], function (error, data) {
+        connection.query('INSERT INTO promise (promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo) VALUES(?,?,?,?,?,?,?,?,?,?)', [promiseOwner, promiseName, promiseLatitude, promiseLongitude, promisePlace, promisePlaceDetail, promiseDate, promiseTime, promiseMember, promiseMemo], function (error, data) {
             if(error){
+                console.log(error);
                 res.send("nameFail");
             }
             else {
@@ -503,7 +505,7 @@ router.post('/inquiry', function (req, res, next) {
     var nickname = req.body.nickname;
     var date = req.body.date;
     var content = req.body.content;
-    connection.query('INSERT INTO inquiry (inquiryTitle, inquiryDate, inquiryContent) VALUES(?,?,?)', [nickname, date, content], function (error, data) {
+    connection.query('INSERT INTO inquiry (inquiryNickname, inquiryDate, inquiryContent) VALUES(?,?,?)', [nickname, date, content], function (error, data) {
         res.send("pass");
     });
 });
@@ -512,7 +514,7 @@ router.post('/unregister', function (req, res, next) {
     var userNickname = req.body.userNickname;
     connection.query('DELETE FROM member WHERE userNickname  = ?', [userNickname], function(error, results) {
         if(error) console.table(error);
-        connection.query('DELETE FROM friend_list WHERE ownerNickname = ? OR friendNickname=?', [userNickname, userNickname], function(errors, results) {
+        connection.query('DELETE FROM friend_list WHERE ownerNickname = ? OR friendNickname=?;', [userNickname, userNickname], function(errors, results) {
             if(errors) console.table(errors);
             res.send("pass");
         });
@@ -521,7 +523,7 @@ router.post('/unregister', function (req, res, next) {
 
 router.post('/deletePromise', function (req, res, next) {
     var promiseName = req.body.name;
-    connection.query('DELETE FROM promise WHERE promiseName = ?', [promiseName], function(error, results) {
+    connection.query('DELETE FROM promise WHERE promiseName = ?;', [promiseName], function(error, results) {
         if(error) {console.log(error);}
         else { res.send("pass"); }
     }); 
@@ -531,7 +533,7 @@ router.post('/inquiry', function (req, res, next) {
     var nickname = req.body.nickname;
     var date = req.body.date;
     var content = req.body.content;
-    connection.query('INSERT INTO inquiry (inquiryTitle, inquiryDate, inquiryContent) VALUES(?,?,?)', [nickname, date, content], function (error, data) {
+    connection.query('INSERT INTO inquiry (inquiryTitle, inquiryDate, inquiryContent) VALUES(?,?,?);', [nickname, date, content], function (error, data) {
         res.send("pass");
     });
 });
@@ -540,9 +542,19 @@ router.post('/location', function (req, res, next) {
     var nickname = req.body.nickname;
     var longitude = req.body.longitude
     var latitude = req.body.latitude;
-    connection.query('INSERT INTO location (nickname, longitude, latitude) VALUES(?,?,?)', [nickname, longitude, latitude], function (error, data) {
-        res.send("pass");
+    connection.query(`SELECT * FROM location WHERE nickname=?;`,[nickname], function (error, rows) {
+        if(rows != null) {
+            connection.query('UPDATE INTO location (nickname, longitude, latitude) VALUES(?,?,?);', [longitude, latitude, nickname], function (error, data) {
+                res.send("pass");
+            });
+        }
+        else {
+            connection.query('INSERT location SET longitude=?, latitude=? WHERE nickname=?;', [nickname, longitude, latitude], function (error, data) {
+                res.send("pass");
+            });
+        }
     });
+    
 });
 
 router.post('/memberLocation', function (req, res, next) {
@@ -553,10 +565,30 @@ router.post('/memberLocation', function (req, res, next) {
 });
 
 router.post('/memberTouchdown', function (req, res, next) {
+    var promiseName = req.body.promiseName;
     var nickname = req.body.nickname;
-    connection.query(`SELECT * FROM touchdown WHERE nickname=?;`,[nickname], function (error, rows) {
+    connection.query(`SELECT nickname, touchdown FROM touchdown WHERE promiseName=? AND nickname=?;`,[promiseName,nickname], function (error, rows) {
         res.send(rows);
     });
 });
+
+router.post('/addTouchdown', function (req, res, next) {
+    var promiseName = req.body.promiseName;
+    var nickname = req.body.nickname;
+    connection.query('INSERT INTO touchdown (promiseName, nickname, touchdown) VALUES(?,?,?)', [promiseName, nickname, 0], function (error, data) {
+        res.send("pass");
+    });
+});
+
+router.post('/changeTouchdown', function (req, res, next) {
+    var promiseName = req.body.promiseName;
+    var nickname = req.body.nickname;
+    var touch = req.body.touchdown;
+    connection.query('INSERT INTO touchdown (promiseName, nickname, touchdown) VALUES(?,?,?)', [promiseName, nickname, touch], function (error, data) {
+        res.send("pass");
+    });
+});
+
+
 
 module.exports = router;

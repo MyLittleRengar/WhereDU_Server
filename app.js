@@ -1,5 +1,6 @@
 var express = require('express');
 
+var webRouter = require('./web/webAdapter');
 var appRouter = require('./app/appAdapter');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
@@ -15,6 +16,7 @@ app.set('view engine', 'ejs');
 
 app.use(express.static('public'));
 
+//app.use('/', webRouter);
 app.use('/app', appRouter);
 
 app.listen(port, function() {
