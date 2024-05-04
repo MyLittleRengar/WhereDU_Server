@@ -346,10 +346,11 @@ router.post('/changePw', function (req, res, next) {
 router.post('/addUser', function (req, res, next) {
     var addId = req.body.addId;
     var addPw = req.body.addPw;
+    var addEmail = req.body.addEmail;
     var addNickname = req.body.addNickname;
     var addGender = req.body.addGender;
     var addBirth = req.body.addBirth;
-    connection.query('INSERT INTO member (userID, userPW, userNickname, userGender, userBirth) VALUES(?,?,?,?,?)', [addId, addPw, addNickname, addGender, addBirth], function (error, data) {
+    connection.query('INSERT INTO member (userID, userPW, userEmail, userNickname, userGender, userBirth) VALUES(?,?,?,?,?,?)', [addId, addPw, addEmail, addNickname, addGender, addBirth], function (error, data) {
         if(error) console.log(error)
         res.send("pass");
     });

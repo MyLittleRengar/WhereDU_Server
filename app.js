@@ -16,7 +16,7 @@ app.set('view engine', 'ejs');
 
 app.use(express.static('public'));
 
-//app.use('/', webRouter);
+app.use('/', webRouter);
 app.use('/app', appRouter);
 
 app.listen(port, function() {
